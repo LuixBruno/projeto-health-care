@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Exames Laboratoriais</title>
+    <link rel="stylesheet" href="paginaInicial.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Exames Laboratoriais</h1>
+        <form id="loginForm">
+            <label for="email">E-mail:</label>
+            <input type="email" id="email" required>
+            <label for="password">Senha:</label>
+            <input type="password" id="password" required>
+            <button type="submit">Entrar</button>
+        </form>
+        <p id="message"></p>
+        <div class="toggle-form">
+            <a href="#" id="toggleForm">Criar nova conta</a>
+        </div>
+    </div>
+
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const toggleForm = document.getElementById('toggleForm');
+        const message = document.getElementById('message');
+        let isLoginForm = true;
+
+        toggleForm.addEventListener('click', (e) => {
+            e.preventDefault();
+            isLoginForm = !isLoginForm;
+            if (isLoginForm) {
+                loginForm.innerHTML = `
+                    <label for="email">E-mail:</label>
+                    <input type="email" id="email" required>
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" required>
+                    <button type="submit">Entrar</button>
+                `;
+                toggleForm.textContent = 'Criar nova conta';
+            } else {
+                loginForm.innerHTML = `
+                    <label for="name">Nome:</label>
+                    <input type="text" id="name" required>
+                    <label for="email">E-mail:</label>
+                    <input type="email" id="email" required>
+                    <label for="password">Senha:</label>
+                    <input type="password" id="password" required>
+                    <label for="confirmPassword">Confirmar Senha:</label>
+                    <input type="password" id="confirmPassword" required>
+                    <button type="submit">Cadastrar</button>
+                `;
+                toggleForm.textContent = 'Já tenho uma conta';
+            }
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (isLoginForm) {
+                // Login
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                const user = users.find(u => u.email === email && u.password === password);
+                if (user) {
+                    message.textContent = 'Login bem-sucedido!';
+                    message.className = 'success';
+                    // Redirecionar para a página inicial (dashboard)
+                    window.location.href = 'dashboard.html';
+                } else {
+                    message.textContent = 'E-mail ou senha inválidos.';
+                    message.className = 'error';
+                }
+            } else {
+                // Cadastro
+                const name = document.getElementById('name').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+
+                if (password !== confirmPassword) {
+                    message.textContent = 'As senhas não coincidem.';
+                    message.className = 'error';
+                    return;
+                }
+
+                const users = JSON.parse(localStorage.getItem('users')) || [];
+                if (users.some(u => u.email === email)) {
+                    message.textContent = 'Este e-mail já está cadastrado.';
+                    message.className = 'error';
+                    return;
+                }
+
+                users.push({ name, email, password });
+                localStorage.setItem('users', JSON.stringify(users));
+                message.textContent = 'Cadastro realizado com sucesso!';
+                message.className = 'success';
+                // Voltar para o formulário de login
+                toggleForm.click();
+            }
+        });
+    </script>
+</body>
+</html>

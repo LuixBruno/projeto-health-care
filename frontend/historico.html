@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Exames - Sistema de Exames Laboratoriais</title>
+    <link rel="stylesheet" href="historico.css">
+
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Sistema de Exames Laboratoriais</h1>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="upload.html">Upload de Exames</a></li>
+                <li><a href="historico.html">Histórico</a></li>
+                <li><a href="visualização.html">Visualização</a></li>
+                <li><a href="#" id="logout">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>Histórico de Exames</h2>
+        <div class="filtros">
+            <input type="text" id="filtroNome" placeholder="Nome do paciente">
+            <select id="filtroTipoExame">
+                <option value="">Todos os tipos</option>
+                <option value="Hemograma">Hemograma</option>
+                <option value="Glicemia">Glicemia</option>
+                <option value="Colesterol">Colesterol</option>
+                <option value="Triglicérides">Triglicérides</option>
+                <option value="Creatinina">Creatinina</option>
+            </select>
+            <input type="date" id="filtroDataInicio">
+            <input type="date" id="filtroDataFim">
+            <button id="aplicarFiltros">Aplicar Filtros</button>
+        </div>
+        <table id="tabelaExames">
+            <thead>
+                <tr>
+                    <th>Paciente</th>
+                    <th>Tipo de Exame</th>
+                    <th>Data</th>
+                    <th>Resultado</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Os dados dos exames serão inseridos aqui via JavaScript -->
+            </tbody>
+        </table>
+        <div class="grafico">
+            <h3>Evolução dos Resultados</h3>
+            <canvas id="graficoEvolucao"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Função para carregar exames do LocalStorage
+        function carregarExames() {
+            return JSON.parse(localStorage.getItem('exames')) || [];
+        }
+
+        // Função para exibir exames na tabela
+        function exibirExames(exames) {
+            const tbody = document.querySelector('#tabelaExames tbody');
+            tbody.innerHTML = '';
+            exames.forEach(exame => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${exame.paciente}</td>
+                    <td>${exame.tipo}</td>
+                    <td>${exame.data}</td>
+                    <td>${exame.resultados}</td>
+                    <td>
+                        <button onclick="visualizarExame(${exame.id})">Visualizar</button>
+                        <button onclick="editarExame(${exame.id})">Editar</button>
+                        <button onclick="excluirExame(${exame.id})">Excluir</button>
+                    </td>
+                    `;
+                tbody.appendChild(tr);
+            });
+        }
+
+// Função para formatar resultados com base no tipo de exame
+function formatarResultados(resultados, tipoExame) {
+    switch (tipoExame) {
+        case 'Hemograma':
+            return `Hemácias: ${resultados.hemacias} milhões/mm³, Hemoglobina: ${resultados.hemoglobina} g/dL`;
+        case 'Glicemia':
+            return `Glicose: ${resultados.glicose} mg/dL`;
+        // Adicione mais casos para outros tipos de exames
+        default:
+            return 'Resultado não formatado.';
+    }
+}
+
+        
+
+        // Função para aplicar filtros
+        function aplicarFiltros() {
+            const nome = document.getElementById('filtroNome').value.toLowerCase();
+            const tipo = document.getElementById('filtroTipoExame').value;
+            const dataInicio = document.getElementById('filtroDataInicio').value;
+            const dataFim = document.getElementById('filtroDataFim').value;
+
+            const examesFiltrados = carregarExames().filter(exame => {
+                return (
+                    exame.paciente.toLowerCase().includes(nome) &&
+                    (tipo === '' || exame.tipo === tipo) &&
+                    (!dataInicio || exame.data >= dataInicio) &&
+                    (!dataFim || exame.data <= dataFim)
+                );
+            });
+
+            exibirExames(examesFiltrados);
+            atualizarGrafico(examesFiltrados);
+        }
+
+        // Função para atualizar o gráfico
+        function atualizarGrafico(exames) {
+            const ctx = document.getElementById('graficoEvolucao').getContext('2d');
+            const dadosGrafico = prepararDadosGrafico(exames);
+
+            new Chart(ctx, {
+                type: 'line',
+                data: dadosGrafico,
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // Função para preparar dados do gráfico
+        function prepararDadosGrafico(exames) {
+            const tiposExames = [...new Set(exames.map(exame => exame.tipo))];
+            const dadosPorTipo = tiposExames.map(tipo => {
+                return {
+                    label: tipo,
+                    data: exames
+                        .filter(exame => exame.tipo === tipo)
+                        .map(exame => ({
+                            x: exame.data,
+                            y: Number(exame.resultados) // Assumindo que o resultado é numérico
+                        })),
+                    borderColor: getRandomColor(),
+                    fill: false
+                };
+            });
+
+            return {
+                datasets: dadosPorTipo
+            };
+        }
+
+        // Função auxiliar para gerar cores aleatórias para o gráfico
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        // Evento para aplicar os filtros ao clicar no botão
+        document.getElementById('aplicarFiltros').addEventListener('click', aplicarFiltros);
+
+        // Função para inicializar a página com os dados existentes no LocalStorage
+        function inicializar() {
+            const exames = carregarExames();
+            exibirExames(exames);
+            atualizarGrafico(exames);
+        }
+
+        function excluirExame(id) {
+            if (confirm('Tem certeza que deseja excluir este exame?')) {
+                let exames = carregarExames();
+                exames = exames.filter(exame => exame.id !== id);
+                localStorage.setItem('exames', JSON.stringify(exames));
+                aplicarFiltros(); // Atualiza a tabela
+            }
+        }
+
+        function visualizarExame(id) {
+            const exames = carregarExames();
+            const exame = exames.find(e => e.id === id);
+            if (exame) {
+                const modal = document.getElementById('modalVisualizacao');
+                const detalhes = document.getElementById('detalhesExame');
+                detalhes.innerHTML = `
+                    <p><strong>Paciente:</strong> ${exame.paciente}</p>
+                    <p><strong>Tipo de Exame:</strong> ${exame.tipo}</p>
+                    <p><strong>Data:</strong> ${new Date(exame.data).toLocaleDateString('pt-BR')}</p>
+                    <p><strong>Resultados:</strong> ${JSON.stringify(exame.resultados)}</p>
+                    <p><strong>Arquivo:</strong> ${exame.arquivo}</p>
+                `;
+                modal.style.display = 'block';
+            }
+        }
+        
+
+        // Chamar a função de inicialização ao carregar a página
+        window.onload = inicializar;
+    </script>
+</body>
+</html>

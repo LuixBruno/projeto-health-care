@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload de Exames - Sistema de Exames Laboratoriais</title>
+    <link rel="stylesheet" href="upload.css">
+  
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Sistema de Exames Laboratoriais</h1>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="upload.html">Upload de Exames</a></li>
+                <li><a href="historico.html">Histórico</a></li>
+                <li><a href="visualização.html">Visualização</a></li>
+                <li><a href="#" id="logout">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>Upload de Exames</h2>
+        <form id="uploadForm">
+            <label for="paciente">Nome do Paciente:</label>
+            <input type="text" id="paciente" required>
+
+            <label for="tipoExame">Tipo de Exame:</label>
+            <select id="tipoExame" required>
+                <option value="">Selecione o tipo de exame</option>
+                <option value="Hemograma">Hemograma</option>
+                <option value="Glicemia">Glicemia</option>
+                <option value="Colesterol">Colesterol</option>
+                <option value="Triglicérides">Triglicérides</option>
+                <option value="Creatinina">Creatinina</option>
+            </select>
+
+            <label for="dataExame">Data do Exame:</label>
+            <input type="date" id="dataExame" required>
+
+            <label for="resultados">Resultados:</label>
+            <input type="text" id="resultados" required>
+
+            <label for="arquivo">Arquivo do Exame (PDF ou Imagem):</label>
+            <input type="file" id="arquivo" accept=".pdf,.jpg,.jpeg,.png">
+
+            <button type="submit">Enviar Exame</button>
+        </form>
+    </div>
+
+    <script>
+        // Função para salvar exame no LocalStorage
+        function salvarExame(exame) {
+            const exames = JSON.parse(localStorage.getItem('exames')) || [];
+            exames.push(exame);
+            localStorage.setItem('exames', JSON.stringify(exames));
+        }
+
+        // Event Listener para o formulário de upload
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const paciente = document.getElementById('paciente').value;
+            const tipoExame = document.getElementById('tipoExame').value;
+            const dataExame = document.getElementById('dataExame').value;
+            const resultados = document.getElementById('resultados').value;
+            const arquivo = document.getElementById('arquivo').files[0];
+
+            // Validação simples
+            if (!paciente || !tipoExame || !dataExame || !resultados) {
+                alert('Por favor, preencha todos os campos obrigatórios.');
+                return;
+            }
+
+            // Criar objeto do exame
+            const exame = {
+                paciente,
+                tipo: tipoExame,
+                data: dataExame,
+                resultados,
+                arquivo: arquivo ? arquivo.name : 'Nenhum arquivo anexado',
+                status: 'pendente'
+            };
+
+            // Salvar exame
+            salvarExame(exame);
+
+            alert('Exame enviado com sucesso!');
+            this.reset(); // Limpar o formulário
+        });
+
+        // Event Listener para logout
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        });
+    </script>
+</body>
+</html>

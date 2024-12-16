@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualização de Exame - Sistema de Exames Laboratoriais</title>
+    <link rel="stylesheet" href="visualização.css">
+
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Sistema de Exames Laboratoriais</h1>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="upload.html">Upload de Exames</a></li>
+                <li><a href="historico.html">Histórico</a></li>
+                <li><a href="visualização.html">Visualização</a></li>
+                <li><a href="#" id="logout">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <h2>Visualização de Exame</h2>
+        <div id="exameDetails" class="exame-details">
+            <!-- Os detalhes do exame serão inseridos aqui via JavaScript -->
+        </div>
+        <div class="interpretacao">
+            <h3>Interpretação Automática</h3>
+            <p id="interpretacao"></p>
+        </div>
+        <div class="anotacoes">
+            <h3>Anotações do Profissional</h3>
+            <textarea id="anotacoesProfissional"></textarea>
+        </div>
+        <div class="acoes">
+            <button class="editar" id="editarExame">Editar Exame</button>
+            <button class="excluir" id="excluirExame">Excluir Exame</button>
+        </div>
+    </div>
+
+    <script>
+        // Função para carregar os detalhes do exame
+        function carregarExame() {
+            // Simular carregamento de um exame (em uma aplicação real, você buscaria isso do servidor ou localStorage)
+            const exame = {
+                id: 1,
+                paciente: "João Silva",
+                tipo: "Hemograma",
+                data: "2024-09-15",
+                resultados: {
+                    hemacias: 3.,
+                    hemoglobina: 11.5,
+                    hematocrito: 45,
+                    leucocitos: 7500,
+                    plaquetas: 250000
+                },
+                valorReferencia: {
+                    hemacias: [4.5, 5.5],
+                    hemoglobina: [13.5, 17.5],
+                    hematocrito: [41, 53],
+                    leucocitos: [4000, 10000],
+                    plaquetas: [150000, 450000]
+                }
+                
+            };
+
+            3
+
+            const detalhesElement = document.getElementById('exameDetails');
+            detalhesElement.innerHTML = `
+                <h3>Exame de ${exame.tipo}</h3>
+                <p><strong>Paciente:</strong> ${exame.paciente}</p>
+                <p><strong>Data:</strong> ${exame.data}</p>
+                <h4>Resultados:</h4>
+                <p>Hemácias: <span class="${estaForaDaReferencia(exame.resultados.hemacias, exame.valorReferencia.hemacias) ? 'valor-fora-referencia' : ''}">${exame.resultados.hemacias}</span> milhões/mm³ (Ref: ${exame.valorReferencia.hemacias[0]} - ${exame.valorReferencia.hemacias[1]})</p>
+                <p>Hemoglobina: <span class="${estaForaDaReferencia(exame.resultados.hemoglobina, exame.valorReferencia.hemoglobina) ? 'valor-fora-referencia' : ''}">${exame.resultados.hemoglobina}</span> g/dL (Ref: ${exame.valorReferencia.hemoglobina[0]} - ${exame.valorReferencia.hemoglobina[1]})</p>
+                <p>Hematócrito: <span class="${estaForaDaReferencia(exame.resultados.hematocrito, exame.valorReferencia.hematocrito) ? 'valor-fora-referencia' : ''}">${exame.resultados.hematocrito}</span> % (Ref: ${exame.valorReferencia.hematocrito[0]} - ${exame.valorReferencia.hematocrito[1]})</p>
+                <p>Leucócitos: <span class="${estaForaDaReferencia(exame.resultados.leucocitos, exame.valorReferencia.leucocitos) ? 'valor-fora-referencia' : ''}">${exame.resultados.leucocitos}</span> /mm³ (Ref: ${exame.valorReferencia.leucocitos[0]} - ${exame.valorReferencia.leucocitos[1]})</p>
+                <p>Plaquetas: <span class="${estaForaDaReferencia(exame.resultados.plaquetas, exame.valorReferencia.plaquetas) ? 'valor-fora-referencia' : ''}">${exame.resultados.plaquetas}</span> /mm³ (Ref: ${exame.valorReferencia.plaquetas[0]} - ${exame.valorReferencia.plaquetas[1]})</p>
+            `;
+
+            interpretarResultados(exame);
+        }
+
+        // Função para verificar se um valor está fora da referência
+        function estaForaDaReferencia(valor, referencia) {
+            return valor < referencia[0] || valor > referencia[1];
+        }
+
+    
+
+        // Função para interpretar os resultados
+        function interpretarResultados(exame) {
+            let interpretacao = "Com base nos resultados apresentados:\n";
+
+            if (estaForaDaReferencia(exame.resultados.hemacias, exame.valorReferencia.hemacias)) {
+                interpretacao += "- O nível de hemácias está alterado e pode indicar uma anemia ou policitemia.\n";
+            }
+            if (estaForaDaReferencia(exame.resultados.hemoglobina, exame.valorReferencia.hemoglobina)) {
+                interpretacao += "- A hemoglobina está fora dos valores de referência, o que pode sugerir problemas na oxigenação do sangue.\n";
+            }
+            if (estaForaDaReferencia(exame.resultados.leucocitos, exame.valorReferencia.leucocitos)) {
+                interpretacao += "- A contagem de leucócitos está alterada, podendo indicar uma infecção ou problema no sistema imunológico.\n";
+            }
+            if (estaForaDaReferencia(exame.resultados.plaquetas, exame.valorReferencia.plaquetas)) {
+                interpretacao += "- O número de plaquetas está fora do normal, o que pode afetar a coagulação sanguínea.\n";
+            }
+
+            if (interpretacao === "Com base nos resultados apresentados:\n") {
+                interpretacao += "Todos os valores estão dentro dos intervalos de referência.";
+            } else {
+                interpretacao += "Recomenda-se uma avaliação médica para interpretação completa destes resultados.";
+            }
+
+            document.getElementById('interpretacao').textContent = interpretacao;
+        }
+
+        // Event Listeners
+        document.getElementById('editarExame').addEventListener('click', () => {
+            alert('Funcionalidade de edição não implementada neste exemplo.');
+        });
+
+        document.getElementById('excluirExame').addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja excluir este exame?')) {
+                alert('Exame excluído com sucesso!');
+                // Em uma aplicação real, você removeria o exame do localStorage ou do servidor aqui
+                window.location.href = 'historico.html';
+            }
+        });
+
+        document.getElementById('logout').addEventListener('click', () => {
+            localStorage.removeItem('currentUser');
+            window.location.href = 'login.html';
+        });
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', carregarExame);
+    </script>
+</body>
+</html>
